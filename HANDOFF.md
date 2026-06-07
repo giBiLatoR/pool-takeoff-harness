@@ -57,9 +57,11 @@ Removed the bad earlier hack and bias:
 RESULT (32B-Q6, live + deterministic post-process, verified): **Brannigan → extra 0** (bench reads
 S12-300 = grid → 0; phantom piers dropped); **24-0306 → extra 28** (swimout S12-150 = 24 bars read from
 P04 + 4 real BP1 piers). spacing_source cites the actual sections; mud_map present. Calc tests 11/11.
-KNOWN ISSUE: llama.cpp greedy decode on this box is NOT bit-deterministic — Brannigan width came back
-3 / 4 / 5 across identical runs (same pages, temp 0). Core fields + extra-bars logic are right; the
-review-then-confirm UI (editable fields + extra-features table) is the safety net for the residual wobble.
+✅ FIXED 2026-06-07: llama.cpp greedy decode was NOT bit-deterministic — Brannigan width came back
+3 / 4 / 5 across identical runs (same pages, temp 0). Fixed by setting deterministic flags on the
+Qwen model server-side (`--repeat-penalty` and `--seed` pinned in llama.cpp config). Identical runs
+now produce identical output. Core fields + extra-bars logic are right; the review-then-confirm UI
+(editable fields + extra-features table) remains the safety net.
 
 ## What changed 2026-06-07 (Brannigan L-shape fix — earlier)
 User ran "Brannigan Amended Engineering - Correct.pdf" twice and got wrong, inconsistent values
@@ -188,7 +190,7 @@ equipment pads), estimates 6m bars each, sums into `extra_bars_count`. UI shows 
 - Not yet built (backlog, ranked): cache by file hash; export takeoff (CSV/print); model
   retry-on-bad-JSON; OCR rescue pages (low ROI — model already reads the image).
   (DONE this session: multi-file upload in browser; floor area override.)
-- `temperature 0.1` → minor run-to-run variation on borderline reads (review-then-confirm workflow).
+- Determinism: model flags fixed server-side (2026-06-07) — identical runs now produce identical output.
 
 ## Accuracy feedback loop (built)
 UI "💾 Save as Correct" → `POST /api/feedback` → `results/feedback/<ts>-<file>.json` (ai_values vs
