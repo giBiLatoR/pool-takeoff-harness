@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+
+# Uploaded files
+uploads/
+
+# Results (generated output)
+results/*.json
+results/_*.log
+results/feedback/
+
+# OS files
+Thumbs.db
+desktop.ini

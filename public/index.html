@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pool Takeoff Harness - AI-Powered Steel Calculator</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .header img {
+            height: 50px;
+            border-radius: 8px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .panel {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border: 1px solid #334155;
+        }
+
+        .panel h2 {
+            color: #93c5fd;
+            margin-bottom: 20px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Upload Area */
+        .upload-zone {
+            border: 3px dashed #475569;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #0f172a;
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: #60a5fa;
+            background: #1e3a8a22;
+        }
+
+        .upload-zone.has-file {
+            border-color: #22c55e;
+            border-style: solid;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #94a3b8;
+            margin-top: 10px;
+        }
+
+        .file-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* Form Inputs */
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        input[type="number"], 
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #334155;
+            border-radius: 8px;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+        }
+
+        .ai-filled {
+            animation: highlight 2s ease;
+            border-color: #22c55e !important;
+        }
+
+        @keyframes highlight {
+            0%, 100% { box-shadow: none; }
+            50% { box-shadow: 0 0 15px rgba(34,197,94,0.5); }
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+        }
+
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37,99,235,0.5); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .btn-success {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+        }
+
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16,185,129,0.5); }
+
+        .btn-secondary {
+            background: #334155;
+            color: white;
+        }
+
+        /* Results */
+        .results-area {
+            margin-top: 20px;
+            padding: 20px;
+            background: #0f172a;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result-total {
+            font-size: 36px;
+            font-weight: bold;
+            color: #22c55e;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .breakdown-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .breakdown-table th, 
+        .breakdown-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #334155;
+            text-align: left;
+        }
+
+        .breakdown-table th {
+            color: #93c5fd;
+            font-weight: bold;
+        }
+
+        /* Confidence badges */
+        .confidence-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .conf-high { background: #22c55e33; color: #22c55e; }
+        .conf-medium { background: #f59e0b33; color: #f59e0b; }
+        .conf-low { background: #ef444433; color: #ef4444; }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #334155;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Status messages */
+        .status-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .status-success { background: #22c55e22; color: #22c55e; border: 1px solid #22c55e44; }
+        .status-error { background: #ef444422; color: #f87171; border: 1px solid #ef444444; }
+
+        /* Copy button */
+        .copy-btn {
+            padding: 6px 12px;
+            background: #334155;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .copy-btn:hover { background: #475569; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .container { grid-template-columns: 1fr; padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://i.imgur.com/d3O9zLM.png" alt="JJZ Constructions" 
+             onerror="this.style.display='none'">
+        <h1>Pool Takeoff Harness 🏊</h1>
+    </div>
+
+    <div class="container">
+        <!-- LEFT: PDF Upload -->
+        <div class="panel">
+            <h2>📄 Upload Plan</h2>
+            
+            <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📁</div>
+                <strong style="color: #60a5fa;">Drop PDF(s) or Image Here</strong><br>
+                <span class="upload-text">or click to browse • multiple files OK (same pool) • Max 20MB each</span>
+                <input type="file" id="fileInput" accept=".pdf,.png,.jpg,.jpeg" multiple hidden>
+                <img id="preview" class="file-preview">
+                <div id="fileList" style="margin-top:12px;text-align:left;display:none;"></div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing plan with AI...</p>
+                <small style="color: #94a3b8;">This may take 10-20 seconds</small>
+            </div>
+
+            <div id="statusMessage" class="status-message"></div>
+
+            <div id="confidencePanel" style="margin-top: 15px; display: none;">
+                <h3 style="color: #93c5fd; margin-bottom: 10px;">AI Confidence</h3>
+                <div id="confidenceBadges"></div>
+            </div>
+
+<div id="spacingSource" style="margin-top: 15px; display: none;">
+                <h3 style="color: #fbbf24; margin-bottom: 8px;">📐 Spacing Source</h3>
+                <p id="spacingText" style="color: #fde68a; font-size: 14px;"></p>
+            </div>
+
+            <div id="mudMapPanel" style="margin-top: 15px; display: none;">
+                <h3 style="color: #fbbf24; margin-bottom: 8px;">🗺️ Mud Map (plan view)
+                    <span style="font-size:12px; color:#94a3b8; font-weight:normal;">— zoomed snapshot the AI read; eyeball it against the values</span>
+                </h3>
+                <a id="mudMapLink" href="#" target="_blank" rel="noopener" title="Open full size in new tab">
+                    <img id="mudMapImg" alt="pool plan view"
+                        style="width:100%; border:1px solid #334155; border-radius:8px; background:#fff; cursor:zoom-in;">
+                </a>
+            </div>
+
+            <div id="pageInfoPanel" style="margin-top: 15px; display: none;">
+                <h3 style="color: #a5b4fc; margin-bottom: 8px;">📄 Pages Read</h3>
+                <div id="pageInfoText" style="color: #c7d2fe; font-size: 14px; margin-bottom: 8px;"></div>
+                <div id="forcePagesRow" style="display: flex; gap: 8px; align-items: center;">
+                    <input type="text" id="forcePagesInput" placeholder="page(s) e.g. 12"
+                        style="width: 130px; padding: 6px 10px; font-size: 14px;">
+                    <button type="button" class="btn btn-secondary" onclick="reextractPages()"
+                        style="padding: 6px 12px;">🔁 Re-extract from page(s)</button>
+                </div>
+            </div>
+
+            <div id="extraFeaturesPanel" style="margin-top: 15px; display: none;">
+                <h3 style="color: #34d399; margin-bottom: 8px;">🔧 Extra Bars Detected
+                    <span style="font-size:12px; color:#94a3b8; font-weight:normal;">(auto-fills "Extra Bars (6m)" — edit any value)</span>
+                </h3>
+                <table class="breakdown-table" id="extraFeaturesTable">
+                    <thead><tr><th>Feature</th><th>6m Bars</th><th>Basis</th></tr></thead>
+                    <tbody></tbody>
+                    <tfoot><tr style="font-weight:bold;color:#34d399;">
+                        <td>Total → Extra Bars</td><td id="extraFeaturesTotal">0</td><td></td>
+                    </tr></tfoot>
+                </table>
+            </div>
+
+            <div id="aiNotes" style="margin-top: 15px; display: none;">
+                <h3 style="color: #93c5fd; margin-bottom: 8px;">📝 AI Notes</h3>
+                <p id="notesText" style="color: #cbd5e1; font-style: italic;"></p>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" id="extractBtn" disabled>
+                    🤖 Extract Values with AI
+                </button>
+                <button class="btn btn-secondary" onclick="clearForm()">
+                    Clear Form
+                </button>
+            </div>
+        </div>
+
+        <!-- RIGHT: Calculator -->
+        <div class="panel">
+            <h2>🔢 Steel Takeoff Calculator</h2>
+            
+            <form id="takeoffForm" onsubmit="return false;">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="length">Length (m)</label>
+                        <input type="number" id="length" step="any" min="0" placeholder="e.g., 8">
+                    </div>
+                    <div class="input-group">
+                        <label for="width">Width (m)</label>
+                        <input type="number" id="width" step="any" min="0" placeholder="e.g., 4">
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="benches_m2">Benches Area (m²)</label>
+                        <input type="number" id="benches_m2" step="any" min="0" placeholder="e.g., 3.5">
+                    </div>
+                    <div class="input-group">
+                        <label for="beam_m2">Beam Area (m²)</label>
+                        <input type="number" id="beam_m2" step="any" min="0" placeholder="e.g., 5.2">
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="floor_area_override" title="Real floor slab area for a non-rectangular (L-shape/freeform) pool. Leave 0 for a plain rectangle. Scales floor steel only; walls/perimeter stay on Length×Width.">
+                            Floor Area Override (m²)
+                            <span style="font-size:11px;color:#94a3b8;font-weight:normal;">0 = use L×W</span>
+                        </label>
+                        <input type="number" id="floor_area_override" step="any" min="0" value="0" placeholder="0 = use L×W">
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="shallow_depth">Shallow End Depth (m)</label>
+                        <input type="number" id="shallow_depth" step="any" min="0" value="1.2">
+                    </div>
+                    <div class="input-group">
+                        <label for="deep_depth">Deep End Depth (m)</label>
+                        <input type="number" id="deep_depth" step="any" min="0" value="1.8">
+                    </div>
+                </div>
+
+                <div style="margin: 20px 0; border-top: 2px solid #334155;"></div>
+
+                <label style="color: #93c5fd; font-size: 12px; text-transform: uppercase;">Spacings</label>
+                
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="lacing_spacing_mm">Lacing Spacing (mm)</label>
+                        <select id="lacing_spacing_mm">
+                            <option value="150">150</option>
+                            <option value="200">200</option>
+                            <option value="250">250</option>
+                            <option value="300" selected>300</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="crossways_mm">Crossways Spacing (mm)</label>
+                        <select id="crossways_mm">
+                            <option value="150">150</option>
+                            <option value="200">200</option>
+                            <option value="250">250</option>
+                            <option value="300" selected>300</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="lengthways_mm">Lengthways Spacing (mm)</label>
+                    <select id="lengthways_mm">
+                        <option value="150">150</option>
+                        <option value="200">200</option>
+                        <option value="250">250</option>
+                        <option value="300" selected>300</option>
+                    </select>
+                </div>
+
+                <div style="margin: 20px 0; border-top: 2px solid #334155;"></div>
+
+                <label style="color: #93c5fd; font-size: 12px; text-transform: uppercase;">Additional Bars</label>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="kicker_bars_m">Kicker Bars (per l/m)</label>
+                        <input type="number" id="kicker_bars_m" step="any" min="0" placeholder="e.g., 12">
+                    </div>
+                    <div class="input-group">
+                        <label for="intermediates_m">Intermediates (per l/m)</label>
+                        <input type="number" id="intermediates_m" step="any" min="0" placeholder="e.g., 15">
+                    </div>
+                </div>
+
+                <!-- Single Tile Beam removed from UI: always treated as "yes" (standard STB build). -->
+                <input type="hidden" id="walls_200" value="yes">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="extra_bars_count">Extra Bars (6m)</label>
+                        <input type="number" id="extra_bars_count" step="1" min="0" value="0">
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="calculateSteel()">
+                        Calculate Steel Bars
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="saveCorrected()" id="saveCorrectBtn"
+                        title="Save these reviewed values as the correct takeoff for this plan (builds an accuracy record vs the AI)">
+                        💾 Save as Correct
+                    </button>
+                    <button class="copy-btn" onclick="copyResults()" id="copyBtn" style="display:none;">📋 Copy</button>
+                </div>
+            </form>
+
+            <!-- Results -->
+            <div class="results-area" id="results">
+                <div class="result-total" id="totalResult"></div>
+                <div id="breakdownTable"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- File Upload Handling (one or many files; multiple = same pool, read together) ---
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const fileListEl = document.getElementById('fileList');
+        const extractBtn = document.getElementById('extractBtn');
+        let selectedFiles = [];
+
+        // Drag and drop
+        ['dragenter', 'dragover'].forEach(e => {
+            dropZone.addEventListener(e, (ev) => { ev.preventDefault(); dropZone.classList.add('dragover'); });
+        });
+        ['dragleave', 'drop'].forEach(e => {
+            dropZone.addEventListener(e, () => dropZone.classList.remove('dragover'));
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) handleFiles(fileInput.files);
+        });
+
+        function handleFiles(fileList) {
+            selectedFiles = Array.from(fileList);
+            dropZone.classList.add('has-file');
+
+            // Image preview only when exactly one image is chosen.
+            if (selectedFiles.length === 1 && selectedFiles[0].type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => { preview.src = e.target.result; preview.style.display = 'block'; };
+                reader.readAsDataURL(selectedFiles[0]);
+            } else {
+                preview.style.display = 'none';
+            }
+
+            // List the selected files inside the drop zone.
+            if (selectedFiles.length) {
+                fileListEl.style.display = 'block';
+                fileListEl.innerHTML = selectedFiles.map(f =>
+                    `<div style="color:#cbd5e1;font-size:13px;padding:3px 0;">📄 ${f.name} ` +
+                    `<span style="color:#64748b;">(${(f.size / 1024 / 1024).toFixed(1)}MB)</span></div>`
+                ).join('');
+            } else {
+                fileListEl.style.display = 'none';
+                fileListEl.innerHTML = '';
+            }
+
+            extractBtn.disabled = selectedFiles.length === 0;
+            setStatus(selectedFiles.length === 1
+                ? `Selected: ${selectedFiles[0].name}`
+                : `Selected ${selectedFiles.length} files — read together as one pool`, 'success');
+        }
+
+        // --- AI Extraction ---
+        extractBtn.addEventListener('click', () => runExtraction());
+
+        async function runExtraction(forcedPages) {
+            if (!selectedFiles.length) return;
+
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+            extractBtn.disabled = true;
+            clearStatus();
+
+            try {
+                const formData = new FormData();
+                selectedFiles.forEach(f => formData.append('plan', f));
+                if (forcedPages) formData.append('pages', forcedPages);
+
+                const response = await fetch('/api/extract', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    fillForm(result.values);
+                    // Remember the AI's raw output so "Save as Correct" can record AI-vs-corrected.
+                    window.lastExtraction = { file: selectedFiles.map(f => f.name).join(', '), ai_values: result.values };
+
+                    // Show confidence badges
+                    showConfidence(result.confidence);
+                    
+                    // Show spacing source
+                    if (result.spacing_source) {
+                        document.getElementById('spacingSource').style.display = 'block';
+                        document.getElementById('spacingText').textContent = result.spacing_source;
+                    }
+                    
+                    // Show the zoomed plan-view snapshot ("mud map") the AI read.
+                    renderMudMap(result.mud_map);
+
+                    // Show auto-detected extra bars (steps, spa, piers, windows, etc.)
+                    renderExtraFeatures(result.extra_features);
+
+                    // Show which pages the AI read (per file) + let the user re-extract from specific pages.
+                    renderPageInfo(result.sources, result.pageNums, result.pageCount);
+
+                    // Show notes
+                    if (result.notes) {
+                        document.getElementById('aiNotes').style.display = 'block';
+                        document.getElementById('notesText').textContent = result.notes;
+                    }
+
+                    const v = result.values || {};
+                    if (!parseFloat(v.length) || !parseFloat(v.width)) {
+                        setStatus('⚠️ Couldn\'t read pool length/width from this plan (often only on the architect\'s set-out sheet). Enter Length & Width manually — spacings and extra bars were still extracted.', 'error');
+                    } else {
+                        setStatus('✅ AI extracted values! Review and adjust as needed before calculating.', 'success');
+                    }
+                } else {
+                    setStatus(`❌ Error: ${result.error}`, 'error');
+                }
+            } catch (err) {
+                setStatus(`❌ Network error: ${err.message}`, 'error');
+            } finally {
+                loading.style.display = 'none';
+                extractBtn.disabled = false;
+            }
+        }
+
+        // Show the zoomed plan-view ("mud map") snapshot the AI read, or hide if none returned.
+        function renderMudMap(dataUrl) {
+            const panel = document.getElementById('mudMapPanel');
+            const img = document.getElementById('mudMapImg');
+            const link = document.getElementById('mudMapLink');
+            if (!panel || !img) return;
+            if (dataUrl) {
+                img.src = dataUrl;
+                if (link) link.href = dataUrl;
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+                img.removeAttribute('src');
+            }
+        }
+
+        // Show which pages the AI read (per file), and — for a single file — a control to force pages.
+        function renderPageInfo(sources, pageNums, pageCount) {
+            const panel = document.getElementById('pageInfoPanel');
+            const forceRow = document.getElementById('forcePagesRow');
+            const textEl = document.getElementById('pageInfoText');
+            if (!panel) return;
+
+            // Prefer the per-file `sources` list; fall back to the flat pageNums for older responses.
+            const list = Array.isArray(sources) && sources.length
+                ? sources
+                : (pageNums && pageNums.length ? [{ file: '', pages: pageNums, pageCount: pageCount }] : []);
+            if (!list.length) { panel.style.display = 'none'; return; }
+
+            textEl.innerHTML = list.map(s =>
+                `${s.file ? '<strong>' + s.file + '</strong>: ' : ''}read page(s) ${(s.pages || []).join(', ')} of ${s.pageCount}`
+            ).join('<br>');
+
+            // Page override is single-file only (it's a page list, not file:page).
+            if (list.length === 1) {
+                forceRow.style.display = 'flex';
+                const inp = document.getElementById('forcePagesInput');
+                const pc = list[0].pageCount, used = (list[0].pages || []).length;
+                inp.placeholder = `e.g. ${Math.min(used + 1, pc)} (1-${pc})`;
+                if (pc > used) textEl.innerHTML += '<br><span style="color:#94a3b8;">Wrong sheet? Force the page(s) below and re-extract.</span>';
+            } else {
+                forceRow.style.display = 'none';
+            }
+            panel.style.display = 'block';
+        }
+
+        function reextractPages() {
+            const raw = (document.getElementById('forcePagesInput').value || '').trim();
+            if (!raw) { setStatus('Enter page number(s) first, e.g. 12 or 12,13', 'error'); return; }
+            runExtraction(raw);
+        }
+
+        function fillForm(values) {
+            const fields = [
+                'length', 'width', 'benches_m2', 'shallow_depth',
+                'deep_depth', 'beam_m2', 'lacing_spacing_mm',
+                'crossways_mm', 'lengthways_mm', 'kicker_bars_m',
+                'intermediates_m', 'extra_bars_count', 'floor_area_override'
+                // walls_200 (Single Tile Beam) is always "yes" now — not filled from AI.
+            ];
+
+            fields.forEach(field => {
+                const el = document.getElementById(field);
+                if (el && values[field] !== undefined) {
+                    const val = values[field];
+
+                    // If a dropdown has no matching option for an AI value (e.g. a real
+                    // 250mm spacing not in the standard list), inject it so it isn't dropped.
+                    if (el.tagName === 'SELECT') {
+                        const has = Array.from(el.options).some(o => o.value == val);
+                        if (!has) {
+                            const opt = document.createElement('option');
+                            opt.value = val; opt.textContent = val;
+                            el.appendChild(opt);
+                        }
+                    }
+
+                    el.value = val;
+                    el.classList.add('ai-filled');
+                    
+                    // Remove highlight after animation
+                    setTimeout(() => el.classList.remove('ai-filled'), 2500);
+                }
+            });
+        }
+
+        // Render auto-detected special features and feed their sum into Extra Bars (6m).
+        function renderExtraFeatures(features) {
+            const panel = document.getElementById('extraFeaturesPanel');
+            const tbody = document.querySelector('#extraFeaturesTable tbody');
+            tbody.innerHTML = '';
+            if (!Array.isArray(features) || features.length === 0) {
+                panel.style.display = 'none';
+                return;
+            }
+
+            const recompute = () => {
+                let total = 0;
+                tbody.querySelectorAll('input.feat-bars').forEach(inp => {
+                    total += parseFloat(inp.value) || 0;
+                });
+                total = Math.round(total);
+                document.getElementById('extraFeaturesTotal').textContent = total;
+                const extra = document.getElementById('extra_bars_count');
+                extra.value = total;
+                extra.classList.add('ai-filled');
+                setTimeout(() => extra.classList.remove('ai-filled'), 1500);
+            };
+
+            features.forEach(f => {
+                const tr = document.createElement('tr');
+                const bars = parseFloat(f.estimated_6m_bars) || 0;
+                tr.innerHTML =
+                    `<td>${f.feature || '—'}</td>` +
+                    `<td><input type="number" class="feat-bars" step="1" min="0" value="${bars}" ` +
+                    `style="width:70px;padding:4px 8px;font-size:14px;"></td>` +
+                    `<td style="color:#94a3b8;font-size:13px;">${f.basis || ''}</td>`;
+                tbody.appendChild(tr);
+            });
+            tbody.querySelectorAll('input.feat-bars').forEach(inp => inp.addEventListener('input', recompute));
+            panel.style.display = 'block';
+            recompute();
+        }
+
+        function showConfidence(conf) {
+            if (!conf || Object.keys(conf).length === 0) return;
+            
+            const panel = document.getElementById('confidencePanel');
+            const badges = document.getElementById('confidenceBadges');
+            badges.innerHTML = '';
+            
+            Object.entries(conf).forEach(([field, level]) => {
+                const badge = document.createElement('span');
+                badge.className = `confidence-badge conf-${level.toLowerCase()}`;
+                badge.textContent = `${field}: ${level}`;
+                badges.appendChild(badge);
+                
+                // Add spacer
+                badges.appendChild(document.createTextNode(' '));
+            });
+            
+            panel.style.display = 'block';
+        }
+
+        function setStatus(msg, type) {
+            const el = document.getElementById('statusMessage');
+            el.textContent = msg;
+            el.className = `status-message status-${type}`;
+            el.style.display = 'block';
+        }
+
+        function clearStatus() {
+            document.getElementById('statusMessage').style.display = 'none';
+        }
+
+        // --- Steel Calculation (from original calculator) ---
+        // Read the current calculator inputs into a values object (same field names the AI uses).
+        function gatherFormValues() {
+            const num = id => parseFloat(document.getElementById(id).value) || 0;
+            return {
+                length: num('length'), width: num('width'), benches_m2: num('benches_m2'),
+                shallow_depth: num('shallow_depth'), deep_depth: num('deep_depth'), beam_m2: num('beam_m2'),
+                lacing_spacing_mm: num('lacing_spacing_mm'), crossways_mm: num('crossways_mm'),
+                lengthways_mm: num('lengthways_mm'), kicker_bars_m: num('kicker_bars_m'),
+                intermediates_m: num('intermediates_m'), single_tile_beam: document.getElementById('walls_200').value,
+                extra_bars_count: num('extra_bars_count'), floor_area_override: num('floor_area_override')
+            };
+        }
+
+        // Save reviewed/corrected values as the ground-truth record for this plan.
+        async function saveCorrected() {
+            const corrected = gatherFormValues();
+            const ai = (window.lastExtraction && window.lastExtraction.ai_values) || null;
+            const file = (window.lastExtraction && window.lastExtraction.file) ||
+                (selectedFiles.length ? selectedFiles.map(f => f.name).join(', ') : 'manual-entry');
+            try {
+                const res = await fetch('/api/feedback', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ file, ai_values: ai, corrected_values: corrected })
+                });
+                const r = await res.json();
+                setStatus(r.success ? `💾 Saved correct takeoff for ${file}` : `❌ Save failed: ${r.error}`,
+                    r.success ? 'success' : 'error');
+            } catch (e) {
+                setStatus(`❌ Save failed: ${e.message}`, 'error');
+            }
+        }
+
+        function calculateSteel() {
+            const length = parseFloat(document.getElementById('length').value) || 0;
+            const width = parseFloat(document.getElementById('width').value) || 0;
+            const benches_m2 = parseFloat(document.getElementById('benches_m2').value) || 0;
+            const shallow_depth = parseFloat(document.getElementById('shallow_depth').value) || 1.2;
+            const deep_depth = parseFloat(document.getElementById('deep_depth').value) || 1.8;
+            const beam_m2 = parseFloat(document.getElementById('beam_m2').value) || 0;
+            const lacing_spacing_mm = parseFloat(document.getElementById('lacing_spacing_mm').value);
+            const crossways_mm = parseFloat(document.getElementById('crossways_mm').value);
+            const lengthways_mm = parseFloat(document.getElementById('lengthways_mm').value);
+            const kicker_bars_m = parseFloat(document.getElementById('kicker_bars_m').value) || 0;
+            const intermediates_m = parseFloat(document.getElementById('intermediates_m').value) || 0;
+            const walls_200_option = document.getElementById('walls_200').value;
+            const extra_bars_count = parseFloat(document.getElementById('extra_bars_count').value) || 0;
+            const floor_area_override = parseFloat(document.getElementById('floor_area_override').value) || 0;
+
+            // Calculations (same as original calculator)
+            const bar_length = 6.0;
+            const bar_effective_length = 5.3;
+            const avg_depth = (Math.max(0, shallow_depth) + Math.max(0, deep_depth)) / 2;
+            const perimeter = (length * 2) + (width * 2) + 0.8;
+            const lacing_spacing_m = lacing_spacing_mm / 1000;
+            const crossways_m = crossways_mm / 1000;
+            const lengthways_m = lengthways_mm / 1000;
+
+            // Floor Area Override (mirrors JJZ Quote Calculator FloorAreaOverrideFactor):
+            // real floor slab area for non-rectangular pools scales floor steel only.
+            // Clamped to <= 1 — the real floor is always inside the L×W bounding box.
+            const gross_floor = (length * width) - benches_m2;
+            const floor_factor = (floor_area_override > 0 && gross_floor > 0)
+                ? Math.min(1, floor_area_override / gross_floor) : 1;
+
+            let bars_raw = {
+                droppers: 0, lacing: 0, crossways: 0, longways: 0, bench: 0,
+                kickers: 0, intermediates: 0, beam: 0, walls_200_extra: 0,
+                skimmer: 2, extra: extra_bars_count
+            };
+
+            // Droppers
+            if (length > 0 || width > 0) {
+                const droppers_per_length_side = Math.ceil(length / 1.2) + 1;
+                const droppers_per_width_side = Math.ceil(width / 1.2) + 1;
+                const total_dropper_count = (droppers_per_length_side * 2) + (droppers_per_width_side * 2);
+                const dropper_total_length = (total_dropper_count * 2.0) + (total_dropper_count * 0.5);
+                bars_raw.droppers = dropper_total_length / bar_length;
+            }
+
+            // Lacing
+            if (lacing_spacing_m > 0 && perimeter > 0.8) {
+                bars_raw.lacing = ((perimeter / bar_effective_length) + 2) * ((avg_depth + 0.2) / lacing_spacing_m);
+            }
+
+            // Crossways (floor steel — scaled by floor area override)
+            if (crossways_m > 0 && length > 0) {
+                const crossways_total_length = (length / crossways_m) * ((avg_depth * 2) + width);
+                bars_raw.crossways = (crossways_total_length / bar_effective_length) * floor_factor;
+            }
+
+            // Lengthways (floor steel — scaled by floor area override)
+            if (lengthways_m > 0 && width > 0) {
+                const num_sections = width / lengthways_m;
+                const length_factor = (avg_depth * 2 + length) / bar_effective_length;
+                bars_raw.longways = num_sections * length_factor * floor_factor;
+            }
+
+            // Bench Extras
+            if (benches_m2 > 0) {
+                bars_raw.bench = benches_m2 * 1.5;
+            }
+
+            // Kickers
+            if (kicker_bars_m > 0) {
+                bars_raw.kickers = (kicker_bars_m * 6.66 * 2.25) / bar_length;
+            }
+
+            // Intermediates
+            if (intermediates_m > 0) {
+                bars_raw.intermediates = (intermediates_m * 3.33) / 2;
+            }
+
+            // Beam
+            if (beam_m2 > 0) {
+                bars_raw.beam = beam_m2 * 1.8;
+            }
+
+            // 200 Walls
+            if (walls_200_option === 'yes' && perimeter > 0.8) {
+                bars_raw.walls_200_extra = (perimeter / 5.0) + (perimeter / 0.25 / bar_length);
+            }
+
+            // Sub-total
+            let total_bars_sum_raw = 0;
+            for (const key in bars_raw) {
+                if (typeof bars_raw[key] === 'number' && !isNaN(bars_raw[key])) {
+                    total_bars_sum_raw += bars_raw[key];
+                }
+            }
+
+            // Waste factor
+            let waste_bars_raw = 0;
+            if (total_bars_sum_raw > 0) {
+                waste_bars_raw = (0.085 * total_bars_sum_raw) - (0.00015 * Math.pow(total_bars_sum_raw, 2));
+                if (waste_bars_raw < 0) waste_bars_raw = 0;
+            }
+
+            const total_bars_with_waste_raw = total_bars_sum_raw + waste_bars_raw;
+            const total_bars_final = Math.ceil(total_bars_with_waste_raw);
+
+            // Display results
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('totalResult').textContent = `${total_bars_final} Steel Bars (6m)`;
+            
+            let tableHTML = '<table class="breakdown-table"><thead><tr><th>Component</th><th>Bars</th></tr></thead><tbody>';
+            
+            const labels = {
+                droppers: 'Droppers', lacing: 'Lacing', crossways: 'Crossways',
+                longways: 'Lengthways', bench: 'Bench Extras', kickers: 'Kickers',
+                intermediates: 'Intermediates', beam: 'Beam', 
+                walls_200_extra: 'Walls 200 Extra', skimmer: 'Skimmer', extra: 'Extra Bars'
+            };
+
+            for (const [key, label] of Object.entries(labels)) {
+                if (bars_raw[key] > 0) {
+                    tableHTML += `<tr><td>${label}</td><td>${Math.ceil(bars_raw[key])} (${bars_raw[key].toFixed(2)} raw)</td></tr>`;
+                }
+            }
+
+            // Waste row
+            if (waste_bars_raw > 0) {
+                tableHTML += `<tr style="color: #f59e0b;"><td>Waste Factor</td><td>${Math.ceil(waste_bars_raw)} (${waste_bars_raw.toFixed(2)})</td></tr>`;
+            }
+
+            // Total row
+            tableHTML += `<tr style="font-weight: bold; color: #22c55e;"><td>TOTAL (with waste)</td><td>${total_bars_final}</td></tr>`;
+            
+            tableHTML += '</tbody></table>';
+            
+            document.getElementById('breakdownTable').innerHTML = tableHTML;
+            document.getElementById('copyBtn').style.display = 'inline-block';
+        }
+
+        function copyResults() {
+            const total = document.getElementById('totalResult').textContent;
+            const breakdown = document.querySelector('.breakdown-table');
+            
+            if (!breakdown) return;
+            
+            let text = `Steel Takeoff Results:\n${total}\n\n`;
+            const rows = breakdown.querySelectorAll('tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td, th');
+                if (cells.length >= 2) {
+                    text += `${cells[0].textContent}: ${cells[1].textContent}\n`;
+                }
+            });
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => btn.textContent = '📋 Copy', 2000);
+            });
+        }
+
+        function clearForm() {
+            // Clear inputs
+            document.querySelectorAll('#takeoffForm input[type="number"]').forEach(el => el.value = '');
+            document.getElementById('shallow_depth').value = '1.2';
+            document.getElementById('deep_depth').value = '1.8';
+            document.getElementById('extra_bars_count').value = '0';
+            document.getElementById('floor_area_override').value = '0';
+            
+            // Clear file(s)
+            selectedFiles = [];
+            fileInput.value = '';
+            fileListEl.style.display = 'none';
+            fileListEl.innerHTML = '';
+            dropZone.classList.remove('has-file');
+            preview.style.display = 'none';
+            extractBtn.disabled = true;
+            
+            // Clear results
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('confidencePanel').style.display = 'none';
+            document.getElementById('extraFeaturesPanel').style.display = 'none';
+            document.getElementById('spacingSource').style.display = 'none';
+            document.getElementById('pageInfoPanel').style.display = 'none';
+            document.getElementById('aiNotes').style.display = 'none';
+            clearStatus();
+        }
+    </script>
+</body>
+</html>
