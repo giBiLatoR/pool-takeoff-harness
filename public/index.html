@@ -982,7 +982,15 @@
             document.getElementById('deep_depth').value = '1.8';
             document.getElementById('extra_bars_count').value = '0';
             document.getElementById('floor_area_override').value = '0';
-            
+
+            // Reset spacing dropdowns to default 300 (and remove any dynamically-added custom options)
+            ['lacing_spacing_mm', 'crossways_mm', 'lengthways_mm'].forEach(id => {
+                const sel = document.getElementById(id);
+                // Remove dynamically added options (any option whose value is not in the standard set)
+                Array.from(sel.options).filter(o => !['150','200','250','300'].includes(o.value)).forEach(o => o.remove());
+                sel.value = '300';
+            });
+
             // Clear file(s)
             selectedFiles = [];
             fileInput.value = '';
@@ -991,14 +999,23 @@
             dropZone.classList.remove('has-file');
             preview.style.display = 'none';
             extractBtn.disabled = true;
-            
-            // Clear results
+
+            // Clear results + all panels
             document.getElementById('results').style.display = 'none';
             document.getElementById('confidencePanel').style.display = 'none';
             document.getElementById('extraFeaturesPanel').style.display = 'none';
             document.getElementById('spacingSource').style.display = 'none';
             document.getElementById('pageInfoPanel').style.display = 'none';
             document.getElementById('aiNotes').style.display = 'none';
+
+            // Clear mud map
+            const mudMapImg = document.getElementById('mudMapImg');
+            if (mudMapImg) mudMapImg.removeAttribute('src');
+            document.getElementById('mudMapPanel').style.display = 'none';
+
+            // Clear last extraction memory
+            window.lastExtraction = null;
+
             clearStatus();
         }
     </script>
